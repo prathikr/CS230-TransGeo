@@ -19,7 +19,7 @@ class TransGeo(nn.Module):
         # create the encoders
         # num_classes is the output fc dimension
 
-        if args.dataset == 'vigor':
+        if args.dataset == 'vigor' or args.dataset == "mars":
             self.size_sat = [320, 320]
             self.size_sat_default = [320, 320]
             self.size_grd = [320, 640]

@@ -22,6 +22,7 @@ import numpy as np
 from dataset.VIGOR import VIGOR
 from dataset.CVUSA import CVUSA
 from dataset.CVACT import CVACT
+from dataset.Mars import Mars
 from model.TransGeo import TransGeo
 from criterion.soft_triplet import SoftTripletBiLoss
 from dataset.global_sampler import DistributedMiningSampler,DistributedMiningSamplerVigor
@@ -95,7 +96,7 @@ parser.add_argument('--cross', action='store_true',
                     help='use cross area')
 
 parser.add_argument('--dataset', default='vigor', type=str,
-                    help='vigor, cvusa, cvact')
+                    help='vigor, cvusa, cvact, mars')
 parser.add_argument('--op', default='adam', type=str,
                     help='sgd, adam, adamw')
 
@@ -123,7 +124,7 @@ best_acc1 = 0
 
 
 def compute_complexity(model, args):
-    if args.dataset == 'vigor':
+    if args.dataset == 'vigor' or args.dataset == "mars":
         size_sat = [320, 320]  # [512, 512]
         size_sat_default = [320, 320]  # [512, 512]
         size_grd = [320, 640]
@@ -315,12 +316,16 @@ def main_worker(gpu, ngpus_per_node, args):
     elif args.dataset == 'cvact':
         dataset = CVACT
         mining_sampler = DistributedMiningSampler
+    elif args.dataset == "mars":
+        dataset = Mars
+        mining_sampler = DistributedMiningSamplerVigor
+        root = "/dev/shm/mars-transgeo"
 
-    train_dataset = dataset(mode='train', print_bool=True, same_area=(not args.cross), args=args, root="/dev/shm/VIGOR-SF")
-    train_scan_dataset = dataset(mode='scan_train' if args.dataset == 'vigor' else 'train', print_bool=True, same_area=(not args.cross), args=args, root="/dev/shm/VIGOR-SF")
-    val_scan_dataset = dataset(mode='scan_val', same_area=(not args.cross), args=args, root="/dev/shm/VIGOR-SF")
-    val_query_dataset = dataset(mode='test_query', same_area=(not args.cross), args=args, root="/dev/shm/VIGOR-SF")
-    val_reference_dataset = dataset(mode='test_reference', same_area=(not args.cross), args=args, root="/dev/shm/VIGOR-SF")
+    train_dataset = dataset(mode='train', print_bool=True, same_area=(not args.cross), args=args, root=root if "root" in locals() else "/dev/shm/VIGOR-SF")
+    train_scan_dataset = dataset(mode='scan_train' if args.dataset == 'vigor' or args.dataset == "mars" else 'train', print_bool=True, same_area=(not args.cross), args=args, root=root if "root" in locals() else "/dev/shm/VIGOR-SF")
+    val_scan_dataset = dataset(mode='scan_val', same_area=(not args.cross), args=args, root=root if "root" in locals() else "/dev/shm/VIGOR-SF")
+    val_query_dataset = dataset(mode='test_query', same_area=(not args.cross), args=args, root=root if "root" in locals() else "/dev/shm/VIGOR-SF")
+    val_reference_dataset = dataset(mode='test_reference', same_area=(not args.cross), args=args, root=root if "root" in locals() else "/dev/shm/VIGOR-SF")
 
     if args.distributed:
         if args.mining:
