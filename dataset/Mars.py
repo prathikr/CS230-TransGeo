@@ -181,6 +181,7 @@ class Mars(torch.utils.data.Dataset):
             print('Test grd loaded, data size: {}'.format(self.test_data_size))
 
         self.train_sat_cover_list = list(self.train_sat_cover_dict.keys())
+        # print(f"len(self.train_sat_cover_list) = {len(self.train_sat_cover_list)}")
 
 
     def check_overlap(self, id_list, idx):
@@ -203,10 +204,13 @@ class Mars(torch.utils.data.Dataset):
             if 'scan' in self.mode:
                 # replace random sample with deterministic sample if it is to scan all the samples
                 ll = len(self.train_sat_cover_dict[self.train_sat_cover_list[index % len(self.train_sat_cover_list)]])
-                assert ll <= 2
+                # assert ll <= 2
                 idx = self.train_sat_cover_dict[self.train_sat_cover_list[index%len(self.train_sat_cover_list)]][(index//len(self.train_sat_cover_list))%ll]
+                # print(f"scan_train: {index} |-> {idx}")
             else:
                 idx = random.choice(self.train_sat_cover_dict[self.train_sat_cover_list[index%len(self.train_sat_cover_list)]])
+                # print(f"train: {index} |-> {idx}")
+            idx = index
             img_query = Image.open(self.train_list[idx])
             img_reference = Image.open(self.train_sat_list[self.train_label[idx][0]]).convert('RGB')
 
@@ -240,7 +244,8 @@ class Mars(torch.utils.data.Dataset):
 
     def __len__(self):
         if 'train' in self.mode:
-            return len(self.train_sat_cover_list) * 2  # one aerial image has 2 positive queries
+            # return len(self.train_sat_cover_list) * 2  # one aerial image has 2 positive queries
+            return self.train_data_size
         elif 'scan_val' in self.mode:
             return len(self.test_sat_list)
         elif 'test_reference' in self.mode:
