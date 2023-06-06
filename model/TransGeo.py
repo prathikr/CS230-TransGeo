@@ -3,7 +3,7 @@ import torch.nn as nn
 import numpy as np
 import matplotlib.pyplot as plt
 import random
-from .Deit import deit_small_distilled_patch16_224
+from .MobileVit import deit_small_distilled_patch16_224
 
 class TransGeo(nn.Module):
     """
